@@ -2,370 +2,1031 @@
 .
 ├── css
 │   └── chalk.css
+├── deploy.sh
 ├── img
 │   ├── bg.png
 │   └── chalk.png
 ├── index.html
 ├── js
-│   └── chalk.js
+│   ├── chalk.js
+│   └── config.js
 ├── llm
+│   ├── old-readme.md
 │   ├── project.txt
 │   └── sonnet
 ├── llmdump.sh
 └── README.md
 
-5 directories, 9 files
+5 directories, 12 files
 
 === ./index.html ===
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Chalkboard</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-    />
-    <meta
-      name="description"
-      content="Fullscreen Javascript canvas implementation of a chalkboard with a realistic chalk effect and touch support. Draw with left click, erase with right click, and clear with spacebar."
-    />
-    <meta
-      name="keywords"
-      content="chalkboard, javascript canvas, drawing, interactive, chalk effect, touch support"
-    />
-    <meta name="author" content="Mohamed Moustafa" />
-    <meta
-      property="og:title"
-      content="Chalkboard - Interactive JavaScript Canvas Drawing"
-    />
-    <meta
-      property="og:description"
-      content="Fullscreen Javascript canvas implementation of a chalkboard with a realistic chalk effect and touch support."
-    />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Chalkboard - Interactive JavaScript Canvas Drawing"
-    />
-    <meta
-      name="twitter:description"
-      content="Interactive chalkboard with realistic chalk effect. Draw, erase, and save your creations."
-    />
-    <link rel="stylesheet" href="css/chalk.css" />
-    <script src="js/chalk.js"></script>
-  </head>
+<head>
+    <meta charset="UTF-8">
+    <title>Chalkboard - Interactive Drawing Canvas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interactive fullscreen chalkboard with realistic chalk effect, touch support, and drawing tools. Draw with left click, erase with right click, clear with spacebar.">
+    <meta name="keywords" content="chalkboard, javascript canvas, drawing, interactive, chalk effect, touch support">
+    <meta name="author" content="Mohamed Moustafa">
+    <meta property="og:title" content="Chalkboard - Interactive JavaScript Canvas Drawing">
+    <meta property="og:description" content="Fullscreen Javascript canvas implementation of a chalkboard with realistic chalk effect and touch support.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chalkboard - Interactive JavaScript Canvas Drawing">
+    <meta name="twitter:description" content="Interactive chalkboard with realistic chalk effect. Draw, erase, and save your creations.">
+    <link rel="stylesheet" href="css/chalk.css">
+</head>
+<body>
+    <!-- GitHub Fork Banner -->
+    <a href="https://github.com/mmoustafa/chalkboard" class="github-fork" aria-label="Fork this project on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" class="octo-arm"></path>
+            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
 
-  <body>
-    <a href="https://github.com/mmoustafa/chalkboard"
-      ><img
-        style="position: absolute; top: 0; right: 0; border: 0; z-index: 99"
-        src="https://github.blog/wp-content/uploads/2008/12/forkme_right_white_ffffff.png"
-        alt="Fork me on GitHub"
-        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png"
-    /></a>
-  </body>
+    <!-- Canvas and UI will be inserted here by JavaScript -->
+    
+    <!-- Controls Panel -->
+    <div class="panel" role="toolbar" aria-label="Drawing controls">
+        <button class="btn-save" aria-label="Save drawing">Save</button>
+        <button class="btn-clear" aria-label="Clear board">Clear (Space)</button>
+        <button class="btn-toggle-eraser" aria-label="Toggle eraser">Eraser (Right Click)</button>
+        <div class="color-picker" aria-label="Chalk color">
+            <input type="color" id="chalk-color" value="#ffffff" aria-label="Choose chalk color">
+        </div>
+    </div>
+
+    <!-- Help tooltip -->
+    <div class="help-tooltip" aria-live="polite">
+        <p><strong>Controls:</strong></p>
+        <p>• Draw: Left click/touch and drag</p>
+        <p>• Erase: Right click and drag</p>
+        <p>• Clear: Press spacebar</p>
+        <p>• Save: Press 'S' or click Save button</p>
+    </div>
+
+    <script src="js/chalk.js"></script>
+</body>
 </html>
 
+
 === ./css/chalk.css ===
-html,body{
-	margin:0;
-	padding:0;
-	height:100%;
-	overflow:hidden;
-	cursor:none;
-	background-color: #333;
-	}
-#chalkboard{
-	position:absolute;
-	top:0;
-	left:0;
-	width:100%;
-	height:100%;
-	z-index:1;
-	cursor:none;
-	background: url(../img/bg.png) repeat;
-	}
-.chalk{
-	width:40px;
-	height:50px;
-	background:url(../img/chalk.png);
-	position:absolute;
-	padding:0;
-	margin:0;
-	bottom:0;
-	left:0;
-	cursor:none;
-	z-index:2;
-	}
-.eraser{
-	width: 50px;
-	height: 100px;
-	margin-top: -50px;
-	margin-left: -25px;
-	background: #999;
-	border-radius: 5px;
-	box-shadow: inset 0 0 10px #545445;
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-.panel{
-	display: block;
-	font-size: 18px;
-	color: #333;
-	font-family: sans-serif;
-	position:absolute;
-	margin:1em;
-	bottom:0;
-	left:0;
-	z-index:5;
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #2a2a2a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
-.panel a{
-	display: inline-block;
-	padding: 0.5em 1em;
-	background:#ccc;
-	text-decoration: none;
-	cursor: pointer;
-	opacity: 0.8;
-	margin-right: 0.5em;
+
+/* Canvas */
+#chalkboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    cursor: none;
+    background-color: #0a3d0a;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+        );
+    /* Fallback for missing bg.png */
+    background-size: 50px 50px;
 }
-.panel a:hover{
-	opacity: 1;
+
+/* Chalk cursor */
+.chalk {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    cursor: none;
+    z-index: 2;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
 }
+
+/* Chalk visual representation */
+.chalk::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #ffffff 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.5),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+    /* Fallback for missing chalk.png */
+}
+
+/* Eraser mode */
+.chalk.eraser {
+    width: 60px;
+    height: 100px;
+    transform: translate(-50%, -50%) rotate(5deg);
+}
+
+.chalk.eraser::before {
+    background: linear-gradient(135deg, #8B7355 0%, #6B5D4F 50%, #8B7355 100%);
+    border-radius: 5px;
+    box-shadow: 
+        inset 0 0 10px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Control Panel */
+.panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 16px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Buttons */
+.panel button {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.panel button:hover {
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.panel button:active {
+    transform: translateY(0);
+}
+
+.panel button:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Eraser button active state */
+.btn-toggle-eraser.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+/* Color picker */
+.color-picker {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+#chalk-color {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    border: none;
+    cursor: pointer;
+    background: none;
+}
+
+/* GitHub Fork Banner */
+.github-fork {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 11;
+    fill: #ffffff;
+    color: #0a3d0a;
+}
+
+.github-fork:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out;
+}
+
+@keyframes octocat-wave {
+    0%, 100% { transform: rotate(0); }
+    20%, 60% { transform: rotate(-25deg); }
+    40%, 80% { transform: rotate(10deg); }
+}
+
+/* Help Tooltip */
+.help-tooltip {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    z-index: 10;
+    max-width: 250px;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.help-tooltip.show {
+    opacity: 1;
+}
+
+.help-tooltip p {
+    margin: 5px 0;
+}
+
+.help-tooltip strong {
+    color: #4CAF50;
+}
+
+/* Download link */
+.download-link {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.download-link:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+/* Loading indicator */
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    z-index: 100;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .panel {
+        bottom: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+    
+    .panel button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .help-tooltip {
+        display: none;
+    }
+    
+    .github-fork {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+@media (hover: none) {
+    /* Touch device optimizations */
+    .panel {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 0;
+        justify-content: space-around;
+    }
+    
+    .chalk {
+        display: none;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .panel {
+        background: black;
+        border: 2px solid white;
+    }
+    
+    .panel button {
+        border: 1px solid white;
+    }
+}
+
+
 === ./js/chalk.js ===
-document.addEventListener("DOMContentLoaded", chalkboard);
+/**
+ * Chalkboard - Interactive Canvas Drawing Application
+ * Enhanced version with improved performance, touch support, and features
+ */
 
-function chalkboard() {
-  // Remove existing elements if they exist
-  const existingChalkboard = document.getElementById("chalkboard");
-  if (existingChalkboard) existingChalkboard.remove();
-  const existingChalk = document.querySelector(".chalk");
-  if (existingChalk) existingChalk.remove();
-
-  // Create and prepend new elements
-  const panel = document.createElement("div");
-  panel.className = "panel";
-  panel.innerHTML = '<a class="link" target="_blank">Save</a>';
-  document.body.prepend(panel);
-
-  const pattern = document.createElement("img");
-  pattern.src = "img/bg.png";
-  pattern.id = "pattern";
-  pattern.width = 50;
-  pattern.height = 50;
-  document.body.prepend(pattern);
-
-  const canvas = document.createElement("canvas");
-  canvas.id = "chalkboard";
-  document.body.prepend(canvas);
-
-  const chalkDiv = document.createElement("div");
-  chalkDiv.className = "chalk";
-  document.body.prepend(chalkDiv);
-
-  // Set canvas dimensions
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const ctx = canvas.getContext("2d");
-
-  const width = canvas.width;
-  const height = canvas.height;
-  let mouseX = 0;
-  let mouseY = 0;
-  let mouseD = false;
-  let eraser = false;
-  let xLast = 0;
-  let yLast = 0;
-  const brushDiameter = 7;
-  const eraserWidth = 50;
-  const eraserHeight = 100;
-
-  canvas.style.cursor = "none";
-  document.onselectstart = () => false;
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.strokeStyle = "rgba(255,255,255,0.5)";
-  ctx.lineWidth = brushDiameter;
-  ctx.lineCap = "round";
-
-  const patImg = document.getElementById("pattern");
-  const chalk = document.querySelector(".chalk");
-
-  // Touch events
-  document.addEventListener(
-    "touchmove",
-    (evt) => {
-      const touch = evt.touches[0];
-      mouseX = touch.pageX;
-      mouseY = touch.pageY;
-      if (mouseY < height && mouseX < width) {
-        evt.preventDefault();
-        chalk.style.left = mouseX + "px";
-        chalk.style.top = mouseY + "px";
-        if (mouseD) {
-          draw(mouseX, mouseY);
-        }
-      }
-    },
-    false
-  );
-
-  document.addEventListener(
-    "touchstart",
-    (evt) => {
-      const touch = evt.touches[0];
-      mouseD = true;
-      mouseX = touch.pageX;
-      mouseY = touch.pageY;
-      xLast = mouseX;
-      yLast = mouseY;
-      draw(mouseX + 1, mouseY + 1);
-    },
-    false
-  );
-
-  document.addEventListener(
-    "touchend",
-    () => {
-      mouseD = false;
-    },
-    false
-  );
-
-  // Mouse events
-  document.addEventListener("mousemove", (evt) => {
-    mouseX = evt.pageX;
-    mouseY = evt.pageY;
-    if (mouseY < height && mouseX < width) {
-      chalk.style.left = mouseX - 0.5 * brushDiameter + "px";
-      chalk.style.top = mouseY - 0.5 * brushDiameter + "px";
-      if (mouseD) {
-        if (eraser) {
-          erase(mouseX, mouseY);
+class Chalkboard {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.width = 0;
+        this.height = 0;
+        this.isDrawing = false;
+        this.isErasing = false;
+        this.lastX = 0;
+        this.lastY = 0;
+        this.currentColor = '#ffffff';
+        this.brushSize = 7;
+        this.eraserSize = 50;
+        this.touchIdentifier = null;
+        
+        // Performance optimization
+        this.rafId = null;
+        this.drawQueue = [];
+        
+        // Initialize on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
         } else {
-          draw(mouseX, mouseY);
+            this.init();
         }
-      }
-    } else {
-      chalk.style.top = height - 10 + "px";
-    }
-  });
-
-  document.addEventListener("mousedown", (evt) => {
-    mouseD = true;
-    xLast = mouseX;
-    yLast = mouseY;
-    if (evt.button == 2) {
-      erase(mouseX, mouseY);
-      eraser = true;
-      chalk.classList.add("eraser");
-    } else {
-      if (!evt.target.closest(".panel")) {
-        draw(mouseX + 1, mouseY + 1);
-      }
-    }
-  });
-
-  document.addEventListener("mouseup", (evt) => {
-    mouseD = false;
-    if (evt.button == 2) {
-      eraser = false;
-      chalk.classList.remove("eraser");
-    }
-  });
-
-  document.addEventListener("keyup", (evt) => {
-    if (evt.keyCode == 32) {
-      ctx.clearRect(0, 0, width, height);
-    }
-    if (evt.keyCode == 83) {
-      changeLink();
-    }
-  });
-
-  document.oncontextmenu = () => false;
-
-  function draw(x, y) {
-    ctx.strokeStyle = "rgba(255,255,255," + (0.4 + Math.random() * 0.2) + ")";
-    ctx.beginPath();
-    ctx.moveTo(xLast, yLast);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-
-    // Chalk Effect
-    const length = Math.round(
-      Math.sqrt(Math.pow(x - xLast, 2) + Math.pow(y - yLast, 2)) /
-        (5 / brushDiameter)
-    );
-    const xUnit = (x - xLast) / length;
-    const yUnit = (y - yLast) / length;
-    for (let i = 0; i < length; i++) {
-      const xCurrent = xLast + i * xUnit;
-      const yCurrent = yLast + i * yUnit;
-      const xRandom = xCurrent + (Math.random() - 0.5) * brushDiameter * 1.2;
-      const yRandom = yCurrent + (Math.random() - 0.5) * brushDiameter * 1.2;
-      ctx.clearRect(xRandom, yRandom, Math.random() * 2 + 2, Math.random() + 1);
     }
 
-    xLast = x;
-    yLast = y;
-  }
+    init() {
+        this.createCanvas();
+        this.createChalkCursor();
+        this.setupEventListeners();
+        this.showHelpTooltip();
+        this.resizeCanvas();
+    }
 
-  function erase(x, y) {
-    ctx.clearRect(
-      x - 0.5 * eraserWidth,
-      y - 0.5 * eraserHeight,
-      eraserWidth,
-      eraserHeight
-    );
-  }
+    createCanvas() {
+        // Remove existing canvas if present
+        const existing = document.getElementById('chalkboard');
+        if (existing) existing.remove();
 
-  document.querySelector(".link").addEventListener("click", () => {
-    const downloadEl = document.querySelector(".download");
-    if (downloadEl) downloadEl.remove();
+        // Create new canvas
+        this.canvas = document.createElement('canvas');
+        this.canvas.id = 'chalkboard';
+        document.body.insertBefore(this.canvas, document.body.firstChild);
+        
+        this.ctx = this.canvas.getContext('2d', { 
+            alpha: false,
+            desynchronized: true 
+        });
+        
+        // Set default styles
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+    }
 
-    const imgCanvas = document.createElement("canvas");
-    const imgCtx = imgCanvas.getContext("2d");
-    const pattern = imgCtx.createPattern(patImg, "repeat");
+    createChalkCursor() {
+        // Remove existing cursor
+        const existing = document.querySelector('.chalk');
+        if (existing) existing.remove();
 
-    imgCanvas.width = width;
-    imgCanvas.height = height;
+        this.chalkCursor = document.createElement('div');
+        this.chalkCursor.className = 'chalk';
+        document.body.appendChild(this.chalkCursor);
+    }
 
-    imgCtx.fillStyle = pattern;
-    imgCtx.rect(0, 0, width, height);
-    imgCtx.fill();
+    setupEventListeners() {
+        // Mouse events
+        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        this.canvas.addEventListener('mouseleave', (e) => this.handleMouseUp(e));
 
-    const layimage = new Image();
-    layimage.src = canvas.toDataURL("image/png");
+        // Touch events
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        this.canvas.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
 
-    setTimeout(() => {
-      imgCtx.drawImage(layimage, 0, 0);
-      const compimage = imgCanvas.toDataURL("image/png");
+        // Keyboard events
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
 
-      const downloadLink = document.createElement("a");
-      downloadLink.href = compimage;
-      downloadLink.download = "chalkboard.png";
-      downloadLink.className = "download";
-      downloadLink.textContent = "Download";
-      panel.appendChild(downloadLink);
+        // Window resize
+        window.addEventListener('resize', () => this.handleResize());
 
-      downloadLink.addEventListener("click", () => {
-        IEsave(compimage);
-      });
-    }, 500);
-  });
+        // Prevent context menu
+        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  function IEsave(ctximage) {
-    setTimeout(() => {
-      const win = window.open();
-      win.document.body.innerHTML =
-        '<img src="' + ctximage + '" name="chalkboard.png">';
-    }, 500);
-  }
+        // Control panel buttons
+        this.setupControlPanel();
 
-  window.addEventListener("resize", () => {
-    // Implement resize handling if needed
-  });
+        // Color picker
+        const colorPicker = document.getElementById('chalk-color');
+        if (colorPicker) {
+            colorPicker.addEventListener('change', (e) => {
+                this.currentColor = e.target.value;
+            });
+        }
+    }
+
+    setupControlPanel() {
+        const saveBtn = document.querySelector('.btn-save');
+        const clearBtn = document.querySelector('.btn-clear');
+        const eraserBtn = document.querySelector('.btn-toggle-eraser');
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveCanvas());
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearCanvas());
+        }
+
+        if (eraserBtn) {
+            eraserBtn.addEventListener('click', () => {
+                this.isErasing = !this.isErasing;
+                eraserBtn.classList.toggle('active', this.isErasing);
+                this.chalkCursor.classList.toggle('eraser', this.isErasing);
+            });
+        }
+    }
+
+    handleMouseDown(e) {
+        if (e.button === 2) {
+            // Right click - eraser
+            this.isErasing = true;
+            this.chalkCursor.classList.add('eraser');
+        } else if (e.button === 0) {
+            // Left click - draw
+            if (e.target.closest('.panel') || e.target.closest('.github-fork')) {
+                return;
+            }
+        }
+        
+        this.startDrawing(e.clientX, e.clientY);
+    }
+
+    handleMouseMove(e) {
+        // Update cursor position
+        this.updateCursorPosition(e.clientX, e.clientY);
+        
+        if (this.isDrawing) {
+            this.addToDrawQueue(e.clientX, e.clientY);
+        }
+    }
+
+    handleMouseUp(e) {
+        this.stopDrawing();
+        
+        if (e.button === 2) {
+            this.isErasing = false;
+            this.chalkCursor.classList.remove('eraser');
+            const eraserBtn = document.querySelector('.btn-toggle-eraser');
+            if (eraserBtn) {
+                eraserBtn.classList.remove('active');
+            }
+        }
+    }
+
+    handleTouchStart(e) {
+        e.preventDefault();
+        
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            this.touchIdentifier = touch.identifier;
+            this.startDrawing(touch.clientX, touch.clientY);
+            this.updateCursorPosition(touch.clientX, touch.clientY);
+        }
+    }
+
+    handleTouchMove(e) {
+        e.preventDefault();
+        
+        if (this.touchIdentifier !== null) {
+            const touch = Array.from(e.touches).find(t => t.identifier === this.touchIdentifier);
+            if (touch) {
+                this.updateCursorPosition(touch.clientX, touch.clientY);
+                if (this.isDrawing) {
+                    this.addToDrawQueue(touch.clientX, touch.clientY);
+                }
+            }
+        }
+    }
+
+    handleTouchEnd(e) {
+        const touch = Array.from(e.changedTouches).find(t => t.identifier === this.touchIdentifier);
+        if (touch) {
+            this.stopDrawing();
+            this.touchIdentifier = null;
+        }
+    }
+
+    handleKeyDown(e) {
+        switch(e.key) {
+            case ' ':
+                e.preventDefault();
+                this.clearCanvas();
+                break;
+            case 's':
+            case 'S':
+                e.preventDefault();
+                this.saveCanvas();
+                break;
+            case 'e':
+            case 'E':
+                this.toggleEraser();
+                break;
+            case 'h':
+            case 'H':
+                this.toggleHelp();
+                break;
+        }
+    }
+
+    handleResize() {
+        // Debounce resize
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => this.resizeCanvas(), 100);
+    }
+
+    startDrawing(x, y) {
+        this.isDrawing = true;
+        this.lastX = x;
+        this.lastY = y;
+        
+        if (!this.isErasing) {
+            // Start with a dot
+            this.drawDot(x, y);
+        }
+    }
+
+    stopDrawing() {
+        this.isDrawing = false;
+        this.drawQueue = [];
+    }
+
+    addToDrawQueue(x, y) {
+        this.drawQueue.push({ x, y });
+        
+        if (!this.rafId) {
+            this.rafId = requestAnimationFrame(() => this.processDrawQueue());
+        }
+    }
+
+    processDrawQueue() {
+        if (this.drawQueue.length === 0) {
+            this.rafId = null;
+            return;
+        }
+
+        const points = this.drawQueue.splice(0, this.drawQueue.length);
+        
+        points.forEach(point => {
+            if (this.isErasing) {
+                this.erase(point.x, point.y);
+            } else {
+                this.draw(point.x, point.y);
+            }
+        });
+
+        this.rafId = requestAnimationFrame(() => this.processDrawQueue());
+    }
+
+    draw(x, y) {
+        // Main stroke
+        this.ctx.strokeStyle = this.hexToRgba(this.currentColor, 0.4 + Math.random() * 0.2);
+        this.ctx.lineWidth = this.brushSize;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.lastX, this.lastY);
+        this.ctx.lineTo(x, y);
+        this.ctx.stroke();
+
+        // Chalk texture effect
+        this.addChalkTexture(x, y);
+        
+        this.lastX = x;
+        this.lastY = y;
+    }
+
+    drawDot(x, y) {
+        this.ctx.fillStyle = this.hexToRgba(this.currentColor, 0.6);
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, this.brushSize / 2, 0, Math.PI * 2);
+        this.ctx.fill();
+    }
+
+    addChalkTexture(x, y) {
+        const distance = Math.hypot(x - this.lastX, y - this.lastY);
+        const steps = Math.ceil(distance / 2);
+        
+        for (let i = 0; i < steps; i++) {
+            const t = i / steps;
+            const currentX = this.lastX + (x - this.lastX) * t;
+            const currentY = this.lastY + (y - this.lastY) * t;
+            
+            // Random particles for chalk texture
+            for (let j = 0; j < 3; j++) {
+                const offsetX = (Math.random() - 0.5) * this.brushSize;
+                const offsetY = (Math.random() - 0.5) * this.brushSize;
+                const size = Math.random() * 2 + 1;
+                
+                this.ctx.fillStyle = this.hexToRgba(this.currentColor, Math.random() * 0.1);
+                this.ctx.fillRect(
+                    currentX + offsetX,
+                    currentY + offsetY,
+                    size,
+                    size
+                );
+            }
+        }
+    }
+
+    erase(x, y) {
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'destination-out';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, this.eraserSize / 2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+        
+        this.lastX = x;
+        this.lastY = y;
+    }
+
+    clearCanvas() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.applyBackground();
+    }
+
+    resizeCanvas() {
+        // Save current content
+        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Resize canvas
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        
+        // Restore styles
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        
+        // Apply background
+        this.applyBackground();
+        
+        // Restore content
+        this.ctx.putImageData(imageData, 0, 0);
+    }
+
+    applyBackground() {
+        // Create chalkboard green background
+        this.ctx.fillStyle = '#0a3d0a';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+        
+        // Add subtle texture
+        for (let i = 0; i < 100; i++) {
+            const x = Math.random() * this.width;
+            const y = Math.random() * this.height;
+            const size = Math.random() * 3;
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.02})`;
+            this.ctx.fillRect(x, y, size, size);
+        }
+    }
+
+    updateCursorPosition(x, y) {
+        if (this.chalkCursor) {
+            this.chalkCursor.style.left = x + 'px';
+            this.chalkCursor.style.top = y + 'px';
+            
+            // Hide cursor when outside canvas
+            const isInsideCanvas = x >= 0 && x <= this.width && y >= 0 && y <= this.height;
+            this.chalkCursor.style.opacity = isInsideCanvas ? '1' : '0';
+        }
+    }
+
+    saveCanvas() {
+        // Show loading indicator
+        const loading = document.createElement('div');
+        loading.className = 'loading';
+        loading.textContent = 'Preparing download...';
+        document.body.appendChild(loading);
+
+        // Create a new canvas with background
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = this.canvas.width;
+        exportCanvas.height = this.canvas.height;
+        const exportCtx = exportCanvas.getContext('2d');
+
+        // Draw green background
+        exportCtx.fillStyle = '#0a3d0a';
+        exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Draw the current canvas content
+        exportCtx.drawImage(this.canvas, 0, 0);
+
+        // Convert to blob and download
+        exportCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `chalkboard_${new Date().getTime()}.png`;
+            link.click();
+            
+            // Cleanup
+            URL.revokeObjectURL(url);
+            loading.remove();
+            
+            // Show success message
+            this.showNotification('Drawing saved successfully!');
+        }, 'image/png');
+    }
+
+    toggleEraser() {
+        this.isErasing = !this.isErasing;
+        this.chalkCursor.classList.toggle('eraser', this.isErasing);
+        
+        const eraserBtn = document.querySelector('.btn-toggle-eraser');
+        if (eraserBtn) {
+            eraserBtn.classList.toggle('active', this.isErasing);
+        }
+    }
+
+    toggleHelp() {
+        const tooltip = document.querySelector('.help-tooltip');
+        if (tooltip) {
+            tooltip.classList.toggle('show');
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 5000);
+        }
+    }
+
+    showHelpTooltip() {
+        const tooltip = document.querySelector('.help-tooltip');
+        if (tooltip) {
+            setTimeout(() => {
+                tooltip.classList.add('show');
+                setTimeout(() => {
+                    tooltip.classList.remove('show');
+                }, 3000);
+            }, 500);
+        }
+    }
+
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'loading';
+        notification.textContent = message;
+        notification.style.background = '#4CAF50';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    }
+
+    hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
 }
+
+// Initialize the chalkboard
+const chalkboard = new Chalkboard();
+
+
+=== ./js/config.js ===
+/**
+ * Chalkboard Configuration
+ * Optional configuration file to customize the chalkboard behavior
+ * Add <script src="js/config.js"></script> before chalk.js in index.html to use
+ */
+
+window.ChalkboardConfig = {
+    // Drawing settings
+    drawing: {
+        defaultColor: '#ffffff',      // Default chalk color
+        brushSize: 7,                  // Default brush size (1-20)
+        eraserSize: 50,                // Default eraser size (20-100)
+        textureIntensity: 3,           // Number of texture particles (0-10)
+        opacity: {
+            min: 0.4,                  // Minimum stroke opacity
+            max: 0.6                   // Maximum stroke opacity
+        }
+    },
+
+    // Canvas settings
+    canvas: {
+        backgroundColor: '#0a3d0a',    // Chalkboard background color
+        textureEnabled: true,          // Enable background texture
+        textureOpacity: 0.02,          // Background texture opacity
+        preserveOnResize: true         // Preserve content when window resizes
+    },
+
+    // UI settings
+    ui: {
+        showHelpOnStart: true,         // Show help tooltip on startup
+        helpDuration: 3000,            // Help tooltip duration (ms)
+        notificationDuration: 2000,    // Success notification duration (ms)
+        controlPanelPosition: 'bottom-left', // 'bottom-left', 'bottom-right', 'top-left', 'top-right'
+        showColorPicker: true,         // Show color picker in control panel
+        showGitHubLink: true           // Show GitHub fork banner
+    },
+
+    // Performance settings
+    performance: {
+        useRAF: true,                  // Use requestAnimationFrame
+        batchDrawCalls: true,          // Batch drawing operations
+        maxQueueSize: 50,              // Maximum draw queue size
+        canvasDesync: true             // Use desynchronized canvas context
+    },
+
+    // Keyboard shortcuts
+    shortcuts: {
+        clear: ' ',                    // Clear canvas
+        save: 's',                     // Save drawing
+        eraser: 'e',                   // Toggle eraser
+        help: 'h',                     // Show help
+        undo: 'z',                     // Undo last stroke (if implemented)
+        redo: 'y'                      // Redo stroke (if implemented)
+    },
+
+    // Touch settings
+    touch: {
+        enabled: true,                 // Enable touch support
+        preventScrolling: true,        // Prevent page scrolling while drawing
+        multiTouchGestures: false      // Enable multi-touch gestures (pinch to zoom, etc.)
+    },
+
+    // Save settings
+    save: {
+        format: 'png',                 // Save format ('png', 'jpeg')
+        quality: 0.9,                  // JPEG quality (0-1)
+        includeBackground: true,       // Include background in saved image
+        filenamePrefix: 'chalkboard', // Filename prefix
+        includeTimestamp: true         // Add timestamp to filename
+    },
+
+    // Advanced features
+    features: {
+        pressure: false,               // Enable pressure sensitivity (requires compatible device)
+        smoothing: true,               // Enable line smoothing
+        autoSave: false,               // Auto-save to localStorage
+        autoSaveInterval: 30000,       // Auto-save interval (ms)
+        undoRedo: false,               // Enable undo/redo functionality
+        layers: false                  // Enable layer support
+    },
+
+    // Custom colors palette
+    colorPalette: [
+        '#ffffff',  // White
+        '#ffff00',  // Yellow
+        '#00ff00',  // Green
+        '#00ffff',  // Cyan
+        '#ff00ff',  // Magenta
+        '#ff9999',  // Pink
+        '#99ccff',  // Light Blue
+        '#ffcc99'   // Peach
+    ],
+
+    // Debug settings
+    debug: {
+        showFPS: false,                // Show FPS counter
+        logEvents: false,              // Log drawing events to console
+        showCursorPosition: false,     // Show cursor coordinates
+        showCanvasInfo: false          // Show canvas information
+    },
+
+    // Experimental features
+    experimental: {
+        webGL: false,                  // Use WebGL for rendering (if available)
+        offscreenCanvas: false,        // Use OffscreenCanvas API
+        imageSmoothing: true,          // Enable image smoothing
+        compositeOperations: true      // Use advanced composite operations
+    },
+
+    // Callbacks (optional)
+    callbacks: {
+        onInit: null,                  // Called when chalkboard initializes
+        onDraw: null,                  // Called on each draw operation
+        onClear: null,                 // Called when canvas is cleared
+        onSave: null,                  // Called when drawing is saved
+        onColorChange: null,           // Called when color changes
+        onEraserToggle: null          // Called when eraser is toggled
+    },
+
+    // Localization (optional)
+    i18n: {
+        language: 'en',
+        strings: {
+            en: {
+                save: 'Save',
+                clear: 'Clear',
+                eraser: 'Eraser',
+                helpTitle: 'Controls:',
+                helpDraw: 'Draw: Left click/touch and drag',
+                helpErase: 'Erase: Right click and drag',
+                helpClear: 'Clear: Press spacebar',
+                helpSave: 'Save: Press \'S\' or click Save button',
+                savedMessage: 'Drawing saved successfully!',
+                clearConfirm: 'Clear the entire board?'
+            }
+        }
+    }
+};
+
+// Helper function to merge user config with defaults
+window.ChalkboardConfig.merge = function(userConfig) {
+    function deepMerge(target, source) {
+        for (const key in source) {
+            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                target[key] = target[key] || {};
+                deepMerge(target[key], source[key]);
+            } else {
+                target[key] = source[key];
+            }
+        }
+        return target;
+    }
+    return deepMerge(this, userConfig);
+};
+
+// Auto-apply dark mode if system preference is set
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    window.ChalkboardConfig.canvas.backgroundColor = '#0a3d0a';
+} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    window.ChalkboardConfig.canvas.backgroundColor = '#1a5a1a';
+}
+
+// Detect touch device and adjust settings
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    window.ChalkboardConfig.touch.enabled = true;
+    window.ChalkboardConfig.ui.controlPanelPosition = 'bottom-center';
+}
+
+// Log config in debug mode
+if (window.ChalkboardConfig.debug.logEvents) {
+    console.log('Chalkboard Configuration:', window.ChalkboardConfig);
+}
+
 

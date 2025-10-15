@@ -1,62 +1,304 @@
-html,body{
-	margin:0;
-	padding:0;
-	height:100%;
-	overflow:hidden;
-	cursor:none;
-	background-color: #333;
-	}
-#chalkboard{
-	position:absolute;
-	top:0;
-	left:0;
-	width:100%;
-	height:100%;
-	z-index:1;
-	cursor:none;
-	background: url(../img/bg.png) repeat;
-	}
-.chalk{
-	width:40px;
-	height:50px;
-	background:url(../img/chalk.png);
-	position:absolute;
-	padding:0;
-	margin:0;
-	bottom:0;
-	left:0;
-	cursor:none;
-	z-index:2;
-	}
-.eraser{
-	width: 50px;
-	height: 100px;
-	margin-top: -50px;
-	margin-left: -25px;
-	background: #999;
-	border-radius: 5px;
-	box-shadow: inset 0 0 10px #545445;
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-.panel{
-	display: block;
-	font-size: 18px;
-	color: #333;
-	font-family: sans-serif;
-	position:absolute;
-	margin:1em;
-	bottom:0;
-	left:0;
-	z-index:5;
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #2a2a2a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
-.panel a{
-	display: inline-block;
-	padding: 0.5em 1em;
-	background:#ccc;
-	text-decoration: none;
-	cursor: pointer;
-	opacity: 0.8;
-	margin-right: 0.5em;
+
+/* Canvas */
+#chalkboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    cursor: none;
+    background-color: #0a3d0a;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+        );
+    /* Fallback for missing bg.png */
+    background-size: 50px 50px;
 }
-.panel a:hover{
-	opacity: 1;
+
+/* Chalk cursor */
+.chalk {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    cursor: none;
+    z-index: 2;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
 }
+
+/* Chalk visual representation */
+.chalk::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #ffffff 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.5),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+    /* Fallback for missing chalk.png */
+}
+
+/* Eraser mode */
+.chalk.eraser {
+    width: 60px;
+    height: 100px;
+    transform: translate(-50%, -50%) rotate(5deg);
+}
+
+.chalk.eraser::before {
+    background: linear-gradient(135deg, #8B7355 0%, #6B5D4F 50%, #8B7355 100%);
+    border-radius: 5px;
+    box-shadow: 
+        inset 0 0 10px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Control Panel */
+.panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 16px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Buttons */
+.panel button {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.panel button:hover {
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.panel button:active {
+    transform: translateY(0);
+}
+
+.panel button:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Eraser button active state */
+.btn-toggle-eraser.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+/* Color picker */
+.color-picker {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+#chalk-color {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    border: none;
+    cursor: pointer;
+    background: none;
+}
+
+/* GitHub Fork Banner */
+.github-fork {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 11;
+    fill: #ffffff;
+    color: #0a3d0a;
+}
+
+.github-fork:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out;
+}
+
+@keyframes octocat-wave {
+    0%, 100% { transform: rotate(0); }
+    20%, 60% { transform: rotate(-25deg); }
+    40%, 80% { transform: rotate(10deg); }
+}
+
+/* Help Tooltip */
+.help-tooltip {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    z-index: 10;
+    max-width: 250px;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.help-tooltip.show {
+    opacity: 1;
+}
+
+.help-tooltip p {
+    margin: 5px 0;
+}
+
+.help-tooltip strong {
+    color: #4CAF50;
+}
+
+/* Download link */
+.download-link {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.download-link:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+/* Loading indicator */
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    z-index: 100;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .panel {
+        bottom: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+    
+    .panel button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .help-tooltip {
+        display: none;
+    }
+    
+    .github-fork {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+@media (hover: none) {
+    /* Touch device optimizations */
+    .panel {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 0;
+        justify-content: space-around;
+    }
+    
+    .chalk {
+        display: none;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .panel {
+        background: black;
+        border: 2px solid white;
+    }
+    
+    .panel button {
+        border: 1px solid white;
+    }
+}
+
