@@ -9,11 +9,12 @@
 ├── js
 │   └── chalk.js
 ├── llm
-│   └── project.txt
+│   ├── project.txt
+│   └── sonnet
 ├── llmdump.sh
 └── README.md
 
-5 directories, 8 files
+5 directories, 9 files
 
 === ./index.html ===
 <!DOCTYPE html>
