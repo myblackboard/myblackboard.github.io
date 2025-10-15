@@ -1,0 +1,370 @@
+=== STRUCTURE ===
+.
+├── css
+│   └── chalk.css
+├── img
+│   ├── bg.png
+│   └── chalk.png
+├── index.html
+├── js
+│   └── chalk.js
+├── llm
+│   └── project.txt
+├── llmdump.sh
+└── README.md
+
+5 directories, 8 files
+
+=== ./index.html ===
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Chalkboard</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <meta
+      name="description"
+      content="Fullscreen Javascript canvas implementation of a chalkboard with a realistic chalk effect and touch support. Draw with left click, erase with right click, and clear with spacebar."
+    />
+    <meta
+      name="keywords"
+      content="chalkboard, javascript canvas, drawing, interactive, chalk effect, touch support"
+    />
+    <meta name="author" content="Mohamed Moustafa" />
+    <meta
+      property="og:title"
+      content="Chalkboard - Interactive JavaScript Canvas Drawing"
+    />
+    <meta
+      property="og:description"
+      content="Fullscreen Javascript canvas implementation of a chalkboard with a realistic chalk effect and touch support."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Chalkboard - Interactive JavaScript Canvas Drawing"
+    />
+    <meta
+      name="twitter:description"
+      content="Interactive chalkboard with realistic chalk effect. Draw, erase, and save your creations."
+    />
+    <link rel="stylesheet" href="css/chalk.css" />
+    <script src="js/chalk.js"></script>
+  </head>
+
+  <body>
+    <a href="https://github.com/mmoustafa/chalkboard"
+      ><img
+        style="position: absolute; top: 0; right: 0; border: 0; z-index: 99"
+        src="https://github.blog/wp-content/uploads/2008/12/forkme_right_white_ffffff.png"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png"
+    /></a>
+  </body>
+</html>
+
+=== ./css/chalk.css ===
+html,body{
+	margin:0;
+	padding:0;
+	height:100%;
+	overflow:hidden;
+	cursor:none;
+	background-color: #333;
+	}
+#chalkboard{
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	z-index:1;
+	cursor:none;
+	background: url(../img/bg.png) repeat;
+	}
+.chalk{
+	width:40px;
+	height:50px;
+	background:url(../img/chalk.png);
+	position:absolute;
+	padding:0;
+	margin:0;
+	bottom:0;
+	left:0;
+	cursor:none;
+	z-index:2;
+	}
+.eraser{
+	width: 50px;
+	height: 100px;
+	margin-top: -50px;
+	margin-left: -25px;
+	background: #999;
+	border-radius: 5px;
+	box-shadow: inset 0 0 10px #545445;
+}
+.panel{
+	display: block;
+	font-size: 18px;
+	color: #333;
+	font-family: sans-serif;
+	position:absolute;
+	margin:1em;
+	bottom:0;
+	left:0;
+	z-index:5;
+}
+.panel a{
+	display: inline-block;
+	padding: 0.5em 1em;
+	background:#ccc;
+	text-decoration: none;
+	cursor: pointer;
+	opacity: 0.8;
+	margin-right: 0.5em;
+}
+.panel a:hover{
+	opacity: 1;
+}
+=== ./js/chalk.js ===
+document.addEventListener("DOMContentLoaded", chalkboard);
+
+function chalkboard() {
+  // Remove existing elements if they exist
+  const existingChalkboard = document.getElementById("chalkboard");
+  if (existingChalkboard) existingChalkboard.remove();
+  const existingChalk = document.querySelector(".chalk");
+  if (existingChalk) existingChalk.remove();
+
+  // Create and prepend new elements
+  const panel = document.createElement("div");
+  panel.className = "panel";
+  panel.innerHTML = '<a class="link" target="_blank">Save</a>';
+  document.body.prepend(panel);
+
+  const pattern = document.createElement("img");
+  pattern.src = "img/bg.png";
+  pattern.id = "pattern";
+  pattern.width = 50;
+  pattern.height = 50;
+  document.body.prepend(pattern);
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "chalkboard";
+  document.body.prepend(canvas);
+
+  const chalkDiv = document.createElement("div");
+  chalkDiv.className = "chalk";
+  document.body.prepend(chalkDiv);
+
+  // Set canvas dimensions
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const ctx = canvas.getContext("2d");
+
+  const width = canvas.width;
+  const height = canvas.height;
+  let mouseX = 0;
+  let mouseY = 0;
+  let mouseD = false;
+  let eraser = false;
+  let xLast = 0;
+  let yLast = 0;
+  const brushDiameter = 7;
+  const eraserWidth = 50;
+  const eraserHeight = 100;
+
+  canvas.style.cursor = "none";
+  document.onselectstart = () => false;
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.strokeStyle = "rgba(255,255,255,0.5)";
+  ctx.lineWidth = brushDiameter;
+  ctx.lineCap = "round";
+
+  const patImg = document.getElementById("pattern");
+  const chalk = document.querySelector(".chalk");
+
+  // Touch events
+  document.addEventListener(
+    "touchmove",
+    (evt) => {
+      const touch = evt.touches[0];
+      mouseX = touch.pageX;
+      mouseY = touch.pageY;
+      if (mouseY < height && mouseX < width) {
+        evt.preventDefault();
+        chalk.style.left = mouseX + "px";
+        chalk.style.top = mouseY + "px";
+        if (mouseD) {
+          draw(mouseX, mouseY);
+        }
+      }
+    },
+    false
+  );
+
+  document.addEventListener(
+    "touchstart",
+    (evt) => {
+      const touch = evt.touches[0];
+      mouseD = true;
+      mouseX = touch.pageX;
+      mouseY = touch.pageY;
+      xLast = mouseX;
+      yLast = mouseY;
+      draw(mouseX + 1, mouseY + 1);
+    },
+    false
+  );
+
+  document.addEventListener(
+    "touchend",
+    () => {
+      mouseD = false;
+    },
+    false
+  );
+
+  // Mouse events
+  document.addEventListener("mousemove", (evt) => {
+    mouseX = evt.pageX;
+    mouseY = evt.pageY;
+    if (mouseY < height && mouseX < width) {
+      chalk.style.left = mouseX - 0.5 * brushDiameter + "px";
+      chalk.style.top = mouseY - 0.5 * brushDiameter + "px";
+      if (mouseD) {
+        if (eraser) {
+          erase(mouseX, mouseY);
+        } else {
+          draw(mouseX, mouseY);
+        }
+      }
+    } else {
+      chalk.style.top = height - 10 + "px";
+    }
+  });
+
+  document.addEventListener("mousedown", (evt) => {
+    mouseD = true;
+    xLast = mouseX;
+    yLast = mouseY;
+    if (evt.button == 2) {
+      erase(mouseX, mouseY);
+      eraser = true;
+      chalk.classList.add("eraser");
+    } else {
+      if (!evt.target.closest(".panel")) {
+        draw(mouseX + 1, mouseY + 1);
+      }
+    }
+  });
+
+  document.addEventListener("mouseup", (evt) => {
+    mouseD = false;
+    if (evt.button == 2) {
+      eraser = false;
+      chalk.classList.remove("eraser");
+    }
+  });
+
+  document.addEventListener("keyup", (evt) => {
+    if (evt.keyCode == 32) {
+      ctx.clearRect(0, 0, width, height);
+    }
+    if (evt.keyCode == 83) {
+      changeLink();
+    }
+  });
+
+  document.oncontextmenu = () => false;
+
+  function draw(x, y) {
+    ctx.strokeStyle = "rgba(255,255,255," + (0.4 + Math.random() * 0.2) + ")";
+    ctx.beginPath();
+    ctx.moveTo(xLast, yLast);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    // Chalk Effect
+    const length = Math.round(
+      Math.sqrt(Math.pow(x - xLast, 2) + Math.pow(y - yLast, 2)) /
+        (5 / brushDiameter)
+    );
+    const xUnit = (x - xLast) / length;
+    const yUnit = (y - yLast) / length;
+    for (let i = 0; i < length; i++) {
+      const xCurrent = xLast + i * xUnit;
+      const yCurrent = yLast + i * yUnit;
+      const xRandom = xCurrent + (Math.random() - 0.5) * brushDiameter * 1.2;
+      const yRandom = yCurrent + (Math.random() - 0.5) * brushDiameter * 1.2;
+      ctx.clearRect(xRandom, yRandom, Math.random() * 2 + 2, Math.random() + 1);
+    }
+
+    xLast = x;
+    yLast = y;
+  }
+
+  function erase(x, y) {
+    ctx.clearRect(
+      x - 0.5 * eraserWidth,
+      y - 0.5 * eraserHeight,
+      eraserWidth,
+      eraserHeight
+    );
+  }
+
+  document.querySelector(".link").addEventListener("click", () => {
+    const downloadEl = document.querySelector(".download");
+    if (downloadEl) downloadEl.remove();
+
+    const imgCanvas = document.createElement("canvas");
+    const imgCtx = imgCanvas.getContext("2d");
+    const pattern = imgCtx.createPattern(patImg, "repeat");
+
+    imgCanvas.width = width;
+    imgCanvas.height = height;
+
+    imgCtx.fillStyle = pattern;
+    imgCtx.rect(0, 0, width, height);
+    imgCtx.fill();
+
+    const layimage = new Image();
+    layimage.src = canvas.toDataURL("image/png");
+
+    setTimeout(() => {
+      imgCtx.drawImage(layimage, 0, 0);
+      const compimage = imgCanvas.toDataURL("image/png");
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = compimage;
+      downloadLink.download = "chalkboard.png";
+      downloadLink.className = "download";
+      downloadLink.textContent = "Download";
+      panel.appendChild(downloadLink);
+
+      downloadLink.addEventListener("click", () => {
+        IEsave(compimage);
+      });
+    }, 500);
+  });
+
+  function IEsave(ctximage) {
+    setTimeout(() => {
+      const win = window.open();
+      win.document.body.innerHTML =
+        '<img src="' + ctximage + '" name="chalkboard.png">';
+    }, 500);
+  }
+
+  window.addEventListener("resize", () => {
+    // Implement resize handling if needed
+  });
+}
+
