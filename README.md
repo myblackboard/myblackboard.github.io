@@ -1,5 +1,7 @@
 # Chalkboard
 
+Original implementation is at https://github.com/0xmmo/chalkboard 
+
 Fullscreen Javascript canvas implementation of a chalkboard with a realistic chalk effect and touch support.
 
 **Demo:** [http://0xmmo.co/experiments/chalk/](http://mmoustafa.com/experiments/chalk "Chalkboard")
